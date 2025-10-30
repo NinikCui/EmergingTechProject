@@ -1,6 +1,12 @@
 import 'package:et_project/detailprofile.dart';
 import 'package:flutter/material.dart';
 import '../class/mahasiswa.dart';
+import 'login_page.dart';
+import 'register_page.dart';
+
+// Pastikan Anda mengimpor file 'editprofile.dart'
+// (Saya lihat Anda sudah melakukan ini di kode Anda)
+import 'editprofile.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -16,21 +22,37 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Project ET'),
+      initialRoute: "/login",
+
+      // === PERBAIKAN 1: 'routes' ===
+      // Kita perbaiki rute 'editprofile' dan hapus rute 'logout' yang tidak perlu
       routes: {
-        'home': (context) => const MyHomePage(title: 'Project ET'),
-        'editprofile': (context) => const MyHomePage(title: 'Edit Profile'),
-        "logout": (context) => const MyHomePage(title: 'Log Out'),
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
+        '/home': (context) {
+          final user = ModalRoute.of(context)!.settings.arguments as User;
+          return MyHomePage(title: 'Daftar Mahasiswa', user: user);
+        },
+        
+        // Mengarahkan ke halaman EditProfilePage dan mengirim data 'user'
+        '/editprofile': (context) {
+          final user = ModalRoute.of(context)!.settings.arguments as User;
+          // Pastikan nama class Anda adalah 'EditProfilePage'
+          return EditProfilePage(user: user); 
+        },
+
         'detail': (context) => const DetailPage(),
+        
+        // Rute lama 'editprofile' and 'logout' dihapus
       },
     );
   }
 }
 
 List<Widget> mahasiswaList(BuildContext context) {
+  // ... (Tidak ada perubahan di sini, sudah benar)
   return List.generate(mahasiswas.length, (index) {
-    final m = mahasiswas[index]; // "bekukan" referensi item di sini
-
+    final m = mahasiswas[index];
     return Container(
       margin: const EdgeInsets.all(15),
       decoration: const BoxDecoration(
@@ -91,23 +113,34 @@ List<Widget> mahasiswaList(BuildContext context) {
   });
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
 
+// === PERBAIKAN 2: 'MyHomePage' ===
+class MyHomePage extends StatefulWidget {
+  // Hanya perlu DUA properti ini
   final String title;
+  final User user;
+
+  // Hanya perlu SATU konstruktor
+  const MyHomePage({
+    super.key,
+    required this.title,
+    required this.user,
+  });
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+
+// === PERBAIKAN 3: '_MyHomePageState' dan 'myDrawer' ===
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: myDrawer(context),
+      // Panggil drawer DENGAN 'widget.user'
+      drawer: myDrawer(context, widget.user),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
         title: Text(widget.title),
       ),
       body: SingleChildScrollView(
@@ -125,38 +158,51 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Drawer myDrawer(BuildContext context) {
+  // Tambahkan 'User user' sebagai parameter
+  Drawer myDrawer(BuildContext context, User user) {
     return Drawer(
       elevation: 16.0,
       child: Column(
         children: <Widget>[
-          const UserAccountsDrawerHeader(
-            accountName: Text("Cindy"),
-            accountEmail: Text("cindylau@gmail.com"),
+          // Tampilkan data 'user' yang sedang login
+          UserAccountsDrawerHeader(
+            accountName: Text(user.name),
+            accountEmail: Text(user.nrp),
             currentAccountPicture: CircleAvatar(
-              backgroundImage: NetworkImage("https://i.pravatar.cc/150"),
+              backgroundImage: NetworkImage(user.photoUrl),
             ),
           ),
-
           ListTile(
             title: const Text("Home"),
             leading: const Icon(Icons.home),
             onTap: () {
-              Navigator.pushNamed(context, 'home');
+              // Tutup drawer saja, karena sudah di halaman home
+              Navigator.pop(context);
             },
           ),
           ListTile(
             title: const Text("Edit Profile"),
             leading: const Icon(Icons.people),
             onTap: () {
-              Navigator.pushNamed(context, 'editprofile');
+              Navigator.pop(context); // Tutup drawer
+              // Panggil rute '/editprofile' dan kirim data 'user'
+              Navigator.pushNamed(context, '/editprofile', arguments: user)
+                  .then((_) {
+                // Refresh halaman ini saat kembali dari edit
+                setState(() {});
+              });
             },
           ),
           ListTile(
             title: const Text("Log Out"),
             leading: const Icon(Icons.logout),
             onTap: () {
-              Navigator.pushNamed(context, 'logout');
+              // Panggil rute '/login' dan hapus semua rute sebelumnya
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+              );
             },
           ),
         ],

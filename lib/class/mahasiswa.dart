@@ -26,7 +26,7 @@ var mahasiswas = <User>[
     program: 'Informatika',
     bio: 'Suka mobile dev & UI/UX.',
     photoUrl: 'https://i.pravatar.cc/150?img=1',
-    password: "",
+    password: "123",
   ),
   User(
     id: 2,
@@ -35,7 +35,7 @@ var mahasiswas = <User>[
     program: 'Sistem Informasi',
     bio: 'Exploring data & product.',
     photoUrl: 'https://i.pravatar.cc/150?img=2',
-    password: "",
+    password: "456",
   ),
   User(
     id: 3,
@@ -44,6 +44,6 @@ var mahasiswas = <User>[
     program: 'Informatika',
     bio: 'AI/ML enthusiast.',
     photoUrl: 'https://i.pravatar.cc/150?img=3',
-    password: "",
+    password: "789",
   ),
 ];

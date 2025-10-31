@@ -4,6 +4,7 @@ class User {
   String nrp;
   String program;
   String bio;
+  String email;
   String photoUrl;
   String password;
 
@@ -13,6 +14,7 @@ class User {
     required this.nrp,
     required this.program,
     required this.bio,
+    required this.email,
     required this.photoUrl,
     required this.password,
   });
@@ -25,6 +27,7 @@ var mahasiswas = <User>[
     nrp: '160720001',
     program: 'Informatika',
     bio: 'Suka mobile dev & UI/UX.',
+    email: 'Dita@gmail.com',
     photoUrl: 'https://i.pravatar.cc/150?img=1',
     password: "123",
   ),
@@ -34,6 +37,7 @@ var mahasiswas = <User>[
     nrp: '160720003',
     program: 'Sistem Informasi',
     bio: 'Exploring data & product.',
+    email: 'Andra@gmail.com',
     photoUrl: 'https://i.pravatar.cc/150?img=2',
     password: "456",
   ),
@@ -43,6 +47,7 @@ var mahasiswas = <User>[
     nrp: '160720005',
     program: 'Informatika',
     bio: 'AI/ML enthusiast.',
+    email: 'Nayla@gmail.com',
     photoUrl: 'https://i.pravatar.cc/150?img=3',
     password: "789",
   ),

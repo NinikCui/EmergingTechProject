@@ -5,3 +5,5 @@ class Friend {
   Friend({required this.nrp_1, required this.nrp_2});
 
 }
+
+var temans = <Friend>[];

@@ -1,6 +1,5 @@
-
 import 'package:flutter/material.dart';
-import 'class/mahasiswa.dart'; 
+import 'class/mahasiswa.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -13,6 +12,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _nrpController = TextEditingController();
+  final _emailController = TextEditingController(); 
   final _programController = TextEditingController();
   final _bioController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -22,6 +22,9 @@ class _RegisterPageState extends State<RegisterPage> {
       final nrpExists = mahasiswas.any(
         (m) => m.nrp == _nrpController.text,
       );
+      final emailExists = mahasiswas.any(
+        (m) => m.email == _emailController.text,
+      );
 
       if (nrpExists) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -30,13 +33,21 @@ class _RegisterPageState extends State<RegisterPage> {
         return;
       }
 
+      if (emailExists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email sudah terdaftar!')),
+        );
+        return;
+      }
+
       final newUser = User(
-        id: mahasiswas.length + 1, 
+        id: mahasiswas.length + 1,
         name: _nameController.text,
         nrp: _nrpController.text,
+        email: _emailController.text, 
         program: _programController.text,
         bio: _bioController.text,
-        photoUrl: 'https://i.pravatar.cc/150', 
+        photoUrl: 'https://i.pravatar.cc/150?img=${mahasiswas.length + 1}',
         password: _passwordController.text,
       );
 
@@ -83,6 +94,20 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 15),
               TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Email tidak boleh kosong';
+                  if (!v.contains('@')) return 'Email tidak valid';
+                  return null;
+                },
+              ),
+              // ==========================
+              const SizedBox(height: 15),
+              TextFormField(
                 controller: _programController,
                 decoration: const InputDecoration(
                   labelText: 'Program/Lab',
@@ -120,7 +145,7 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 10),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context); 
+                  Navigator.pop(context);
                 },
                 child: const Text('Sudah punya akun? Login'),
               ),

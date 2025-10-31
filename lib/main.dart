@@ -1,19 +1,32 @@
 import 'package:et_project/detailprofile.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // <-- IMPORT (POIN 2)
 import '../class/mahasiswa.dart';
 import 'login_page.dart';
 import 'register_page.dart';
+import 'editprofile.dart';
 
-// Pastikan Anda mengimpor file 'editprofile.dart'
-// (Saya lihat Anda sudah melakukan ini di kode Anda)
-import 'editprofile.dart'; 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); 
 
-void main() {
-  runApp(const MyApp());
+  final prefs = await SharedPreferences.getInstance();
+  final String? loggedInUserNrp = prefs.getString('loggedInUserNrp');
+  
+  User? loggedInUser;
+  if (loggedInUserNrp != null) {
+    try {
+      loggedInUser = mahasiswas.firstWhere((m) => m.nrp == loggedInUserNrp);
+    } catch (e) {
+      await prefs.remove('loggedInUserNrp');
+    }
+  }
+
+  runApp(MyApp(loggedInUser: loggedInUser));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final User? loggedInUser;
+  const MyApp({super.key, this.loggedInUser});
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +35,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      initialRoute: "/login",
 
-      // === PERBAIKAN 1: 'routes' ===
-      // Kita perbaiki rute 'editprofile' dan hapus rute 'logout' yang tidak perlu
+      home: loggedInUser != null
+          ? MyHomePage(title: 'Daftar Mahasiswa', user: loggedInUser!)
+          : const LoginPage(),
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
@@ -33,94 +46,20 @@ class MyApp extends StatelessWidget {
           final user = ModalRoute.of(context)!.settings.arguments as User;
           return MyHomePage(title: 'Daftar Mahasiswa', user: user);
         },
-        
-        // Mengarahkan ke halaman EditProfilePage dan mengirim data 'user'
         '/editprofile': (context) {
           final user = ModalRoute.of(context)!.settings.arguments as User;
-          // Pastikan nama class Anda adalah 'EditProfilePage'
-          return EditProfilePage(user: user); 
+          return EditProfilePage(user: user);
         },
-
         'detail': (context) => const DetailPage(),
-        
-        // Rute lama 'editprofile' and 'logout' dihapus
       },
     );
   }
 }
 
-List<Widget> mahasiswaList(BuildContext context) {
-  // ... (Tidak ada perubahan di sini, sudah benar)
-  return List.generate(mahasiswas.length, (index) {
-    final m = mahasiswas[index];
-    return Container(
-      margin: const EdgeInsets.all(15),
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(128, 128, 128, 0.5),
-            spreadRadius: -6,
-            blurRadius: 8,
-            offset: Offset(8, 7),
-          ),
-        ],
-      ),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                m.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  m.photoUrl,
-                  height: 120,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text("NRP: ${m.nrp}", style: const TextStyle(fontSize: 14)),
-              const SizedBox(height: 15),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pushNamed(context, 'detail', arguments: m);
-                },
-                child: const Text("Lihat Detail Profil"),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  });
-}
-
-
-// === PERBAIKAN 2: 'MyHomePage' ===
 class MyHomePage extends StatefulWidget {
-  // Hanya perlu DUA properti ini
   final String title;
   final User user;
 
-  // Hanya perlu SATU konstruktor
   const MyHomePage({
     super.key,
     required this.title,
@@ -131,14 +70,77 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-
-// === PERBAIKAN 3: '_MyHomePageState' dan 'myDrawer' ===
 class _MyHomePageState extends State<MyHomePage> {
+  List<Widget> _mahasiswaList(BuildContext context) {
+    return List.generate(mahasiswas.length, (index) {
+      final m = mahasiswas[index];
+      return Container(
+        margin: const EdgeInsets.all(15),
+        decoration: const BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromRGBO(128, 128, 128, 0.5),
+              spreadRadius: -6,
+              blurRadius: 8,
+              offset: Offset(8, 7),
+            ),
+          ],
+        ),
+        child: Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  m.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    m.photoUrl,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text("NRP: ${m.nrp}", style: const TextStyle(fontSize: 14)),
+                const SizedBox(height: 15),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, 'detail', arguments: {
+                      'viewedUser': m,
+                      'currentUser': widget.user, 
+                    });
+                  },
+                  child: const Text("Lihat Detail Profil"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Panggil drawer DENGAN 'widget.user'
-      drawer: myDrawer(context, widget.user),
+      drawer: myDrawer(context, widget.user), 
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
@@ -148,26 +150,24 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             ListView(
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              children: mahasiswaList(context),
+              physics: const NeverScrollableScrollPhysics(),
+              children: _mahasiswaList(context), 
             ),
-            Divider(height: 100),
+            const Divider(height: 100),
           ],
         ),
       ),
     );
   }
 
-  // Tambahkan 'User user' sebagai parameter
   Drawer myDrawer(BuildContext context, User user) {
     return Drawer(
       elevation: 16.0,
       child: Column(
         children: <Widget>[
-          // Tampilkan data 'user' yang sedang login
           UserAccountsDrawerHeader(
             accountName: Text(user.name),
-            accountEmail: Text(user.nrp),
+            accountEmail: Text(user.email), 
             currentAccountPicture: CircleAvatar(
               backgroundImage: NetworkImage(user.photoUrl),
             ),
@@ -176,7 +176,6 @@ class _MyHomePageState extends State<MyHomePage> {
             title: const Text("Home"),
             leading: const Icon(Icons.home),
             onTap: () {
-              // Tutup drawer saja, karena sudah di halaman home
               Navigator.pop(context);
             },
           ),
@@ -184,11 +183,9 @@ class _MyHomePageState extends State<MyHomePage> {
             title: const Text("Edit Profile"),
             leading: const Icon(Icons.people),
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              // Panggil rute '/editprofile' dan kirim data 'user'
+              Navigator.pop(context); 
               Navigator.pushNamed(context, '/editprofile', arguments: user)
                   .then((_) {
-                // Refresh halaman ini saat kembali dari edit
                 setState(() {});
               });
             },
@@ -196,8 +193,11 @@ class _MyHomePageState extends State<MyHomePage> {
           ListTile(
             title: const Text("Log Out"),
             leading: const Icon(Icons.logout),
-            onTap: () {
-              // Panggil rute '/login' dan hapus semua rute sebelumnya
+            onTap: () async { 
+
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('loggedInUserNrp');
+
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 '/login',

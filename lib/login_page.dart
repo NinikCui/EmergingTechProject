@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'class/mahasiswa.dart'; 
 
 class LoginPage extends StatefulWidget {
@@ -10,24 +11,24 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nrpController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   void _login() {
     if (_formKey.currentState!.validate()) {
-      final nrp = _nrpController.text.trim();
+      final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
       try {
         final user = mahasiswas.firstWhere(
-          (m) => m.nrp == nrp && m.password == password,
+          (m) => m.email == email && m.password == password,
         );
         
         Navigator.pushReplacementNamed(context, '/home',arguments: user);
 
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('NRP atau Password salah!')),
+          const SnackBar(content: Text('Email atau Password salah!')),
         );
       }
     }
@@ -50,14 +51,14 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
               TextFormField(
-                controller: _nrpController,
+                controller: _emailController,
                 decoration: const InputDecoration(
-                  labelText: 'NRP',
+                  labelText: 'Email',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'NRP tidak boleh kosong';
+                    return 'email tidak boleh kosong';
                   }
                   return null;
                 },
